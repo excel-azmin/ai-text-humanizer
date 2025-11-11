@@ -5,7 +5,7 @@ A powerful, fast, and open-source tool for transforming AI-generated content int
 <img width="1704" height="951" alt="image" src="https://github.com/user-attachments/assets/f1d77f9c-0a34-4b5b-bf92-282bd58688f1" />
 
 
-## 🚀 Features
+## Features
 
 - **Multiple Processing Modes**: Fast (real-time), Balanced, and Quality modes
 - **Advanced Techniques**: 
@@ -21,7 +21,7 @@ A powerful, fast, and open-source tool for transforming AI-generated content int
 - **Docker Support**: Easy deployment with Docker Compose
 - **Production Ready**: Industry-standard folder structure and best practices
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ai-text-humanizer/
@@ -93,7 +93,7 @@ ai-text-humanizer/
 - **`app/services/engine.py`**: Core humanization engine
 - **`app/models/schemas.py`**: Pydantic models for request/response validation
 
-## 🛠️ Installation
+## Installation
 
 ### Quick Start (Automated)
 
@@ -154,7 +154,7 @@ Site pages (same-origin)
 - Blog: `/blog`
 - Privacy: `/privacy`
 
-## 📖 Usage
+## Usage
 
 ### Command Line
 
@@ -240,27 +240,27 @@ ws.onmessage = (event) => {
 };
 ```
 
-## 🎯 Processing Modes
+## Processing Modes
 
-### Fast Mode ⚡
+### Fast Mode 
 - **Speed**: < 0.5 seconds
 - **Techniques**: Pattern-based modifications
 - **Use Case**: Real-time applications, live typing
 - **Models**: Lightweight, CPU-friendly
 
-### Balanced Mode ⚖️
+### Balanced Mode 
 - **Speed**: 1-3 seconds
 - **Techniques**: Pattern + semantic paraphrasing
 - **Use Case**: General content, blog posts
 - **Models**: Medium-sized, GPU recommended
 
-### Quality Mode ✨
+### Quality Mode 
 - **Speed**: 3-10 seconds
 - **Techniques**: All available techniques
 - **Use Case**: Important documents, academic content
 - **Models**: Large models, GPU required
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -322,7 +322,7 @@ intensity_levels = {
 }
 ```
 
-## 📊 Performance Benchmarks
+## Performance Benchmarks
 
 | Mode | Text Length | Processing Time | GPU | Similarity |
 |------|------------|----------------|-----|------------|
@@ -333,7 +333,7 @@ intensity_levels = {
 | Quality | 500 words | 4.5s | Yes | 88% |
 | Quality | 2000 words | 9.8s | Yes | 87% |
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────┐
@@ -355,7 +355,7 @@ intensity_levels = {
 └─────────────────────────────────────────┘
 ```
 
-## 🔒 API Endpoints
+## API Endpoints
 
 All endpoints are under `/api/v1/`:
 
@@ -371,7 +371,7 @@ All endpoints are under `/api/v1/`:
 | `/api/v1/analyze/detect-and-humanize` | POST | Auto-detect and humanize |
 | `/api/v1/humanize/ws` | WebSocket | Real-time humanization |
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Setup
 
@@ -413,7 +413,7 @@ request_count = Counter('humanizer_requests_total', 'Total requests')
 request_duration = Histogram('humanizer_duration_seconds', 'Request duration')
 ```
 
-## 🔄 Migration from Old Structure
+## Migration from Old Structure
 
 If you're upgrading from the old structure:
 
@@ -435,7 +435,7 @@ If you're upgrading from the old structure:
 5. **Testing**: Organized structure for test files
 6. **Documentation**: Better code organization
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
@@ -456,18 +456,18 @@ black .
 mypy .
 ```
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Hugging Face for transformer models
 - SpaCy for NLP capabilities
 - FastAPI for the web framework
 - Open source community for various contributions
 
-## ⚠️ Ethical Use
+## Ethical Use
 
 This tool is designed for legitimate purposes such as:
 - Improving content readability
@@ -477,18 +477,18 @@ This tool is designed for legitimate purposes such as:
 
 Please use responsibly and maintain transparency about AI assistance in your content where appropriate.
 
-## 📧 Contact
+## Contact
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
+- GitHub: [@excel-azmin](https://github.com/excel-azmin)
+- Email: azmin@pixfar.com
 
-## 🐛 Known Issues
+## Known Issues
 
 - GPU memory usage can be high with large models
 - Some techniques may slightly alter meaning at high intensities
 - WebSocket connections may timeout after extended idle periods
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Support for more languages
 - [ ] Integration with popular writing tools
