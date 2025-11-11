@@ -2,6 +2,8 @@
 
 A powerful, fast, and open-source tool for transforming AI-generated content into natural, human-like text that bypasses AI detection systems.
 
+<img width="1704" height="951" alt="image" src="https://github.com/user-attachments/assets/f1d77f9c-0a34-4b5b-bf92-282bd58688f1" />
+
 
 ## 🚀 Features
 
