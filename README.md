@@ -2,6 +2,7 @@
 
 A powerful, fast, and open-source tool for transforming AI-generated content into natural, human-like text that bypasses AI detection systems.
 
+
 ## 🚀 Features
 
 - **Multiple Processing Modes**: Fast (real-time), Balanced, and Quality modes
@@ -55,8 +56,16 @@ ai-text-humanizer/
 │   └── utils/                   # Utility functions
 │       └── __init__.py
 │
-├── templates/                   # HTML templates
-│   └── web_interface.html      # Web UI
+├── templates/                   # HTML templates (UI served by FastAPI)
+│   ├── web_interface.html      # Home UI (editor)
+│   ├── pricing.html            # Pricing page
+│   ├── features.html           # Features page
+│   ├── faq.html                # FAQ page
+│   ├── blog.html               # Blog landing page
+│   ├── about.html              # About Us page
+│   ├── privacy.html            # Privacy Policy
+│   ├── _shared_head.html       # Optional shared header (standalone variant)
+│   └── _shared_footer.html     # Optional shared footer (standalone variant)
 │
 ├── static/                      # Static files (CSS, JS, images)
 ├── tests/                       # Test files
@@ -70,7 +79,7 @@ ai-text-humanizer/
 ├── requirements.txt             # Python dependencies
 ├── Dockerfile                   # Docker image definition
 ├── docker-compose.yml           # Docker Compose configuration
-└── setup_and_run.sh            # Combined setup and run script
+└── start.sh                    # Combined setup + run helper script
 ```
 
 ### Key Components
@@ -91,8 +100,8 @@ ai-text-humanizer/
 git clone https://github.com/yourusername/ai-humanizer.git
 cd ai-humanizer
 
-# Run setup and start (automatically detects if setup is needed)
-./setup_and_run.sh
+# Run setup and start (auto-detects if setup is needed)
+./start.sh
 ```
 
 The script will:
@@ -134,19 +143,28 @@ docker-compose logs -f humanizer
 
 Access the application at `http://localhost:3650`
 
+Site pages (same-origin)
+- Home: `/`
+- Features: `/features`
+- Pricing: `/pricing`
+- About Us: `/about`
+- FAQ: `/faq`
+- Blog: `/blog`
+- Privacy: `/privacy`
+
 ## 📖 Usage
 
 ### Command Line
 
 ```bash
 # Setup only
-./setup_and_run.sh setup
+./start.sh setup
 
 # Run only (assumes setup is complete)
-./setup_and_run.sh run
+./start.sh run
 
 # Setup and run (auto-detects)
-./setup_and_run.sh
+./start.sh
 ```
 
 ### Python API
