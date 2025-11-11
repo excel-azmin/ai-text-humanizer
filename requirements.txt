@@ -1,0 +1,25 @@
+# Core dependencies
+torch>=2.0.0
+transformers>=4.30.0
+sentence-transformers>=2.2.0
+numpy>=1.24.0
+spacy>=3.5.0
+nltk>=3.8.0
+
+# API dependencies
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-multipart>=0.0.6
+websockets>=11.0
+
+# Optional performance enhancements
+redis>=4.6.0
+
+# Language model requirements
+sentencepiece>=0.1.99
+protobuf>=3.20.0
+
+# Additional NLP tools
+wordnet>=0.0.1b2

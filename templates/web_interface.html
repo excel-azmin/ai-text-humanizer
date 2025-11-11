@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Text Humanizer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            color: #0f172a;
+            background: #f8fafc;
+        }
+        .nav {
+            width: 100%;
+            position: sticky; top: 0; z-index: 20;
+            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.25);
+        }
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; color: #ffffff; letter-spacing: .2px; }
+        .brand-logo { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .brand-logo svg { width: 18px; height: 18px; }
+        .nav .links { display: flex; gap: 18px; font-weight: 700; }
+        .nav .links a { cursor: pointer; color: #ffffff; opacity: .9; text-decoration: none; position: relative; transition: color .2s ease, opacity .2s ease; }
+        .nav .links a:after { content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: rgba(255,255,255,0.9); transform: scaleX(0); transform-origin: center; transition: transform .2s ease; border-radius: 2px; }
+        .nav .links a:hover { color: #ffffff; opacity: 1; }
+        .nav .links a:hover:after { transform: scaleX(1); }
+        .nav .actions { display: flex; align-items: center; gap: 12px; }
+        .btn-premium { background: #22c55e; color: #fff; border: none; padding: 8px 14px; border-radius: 999px; font-weight: 700; cursor: pointer; }
+        .avatar { width: 28px; height: 28px; border-radius: 999px; background: #cbd5e1; display: inline-block; }
+        .hero {
+            text-align: center; padding: 40px 20px 20px;
+        }
+        .hero h1 { font-size: 34px; line-height: 1.2; margin-bottom: 8px; }
+        .hero p { color: #475569; max-width: 760px; margin: 0 auto; }
+        .workspace {
+            max-width: 1200px; margin: 20px auto; padding: 0 20px;
+        }
+        .panes {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+        @media (max-width: 900px) { .panes { grid-template-columns: 1fr; } }
+        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .card-header h3 { font-size: 12px; color: #334155; text-transform: uppercase; letter-spacing: 0.04em; }
+        .card-header .tools { display: flex; gap: 10px; color: #64748b; font-size: 12px; }
+        textarea {
+            width: 100%; min-height: 320px; padding: 14px;
+            border: 1px solid #e2e8f0; border-radius: 10px; resize: vertical; font-size: 14px;
+        }
+        textarea:focus { outline: none; border-color: #6366f1; }
+        .controller {
+            max-width: 480px; margin: 24px auto; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .mode-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+        .mode-tab {
+            flex: 1; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 13px; color: #0f172a; cursor: pointer; background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; transition: all 0.2s;
+        }
+        .mode-tab:hover { border-color: #cbd5e1; transform: translateY(-1px); }
+        .mode-tab.active { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #fff; border-color: #0ea5e9; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); }
+        .mode-tab[data-ui-mode="creative"].active { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+        .mode-tab[data-ui-mode="academic"].active { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-color: #8b5cf6; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+        .mode-tab svg { width: 18px; height: 18px; }
+        .range-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0; padding: 12px; background: #f8fafc; border-radius: 10px; }
+        .range-row > div:first-child { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0f172a; }
+        .range-row svg { width: 20px; height: 20px; color: #0ea5e9; }
+        input[type="range"] { 
+            flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; outline: none; -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); cursor: pointer; box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); cursor: pointer; border: none; box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
+        }
+        .range-row > div:last-child { font-weight: 700; color: #0ea5e9; min-width: 45px; text-align: right; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; margin: 14px 0; padding: 10px 12px; background: #f8fafc; border-radius: 10px; }
+        .toggle-row > span { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0f172a; }
+        .toggle-row svg { width: 18px; height: 18px; }
+        .toggle { appearance: none; width: 44px; height: 24px; border-radius: 999px; background: #cbd5e1; position: relative; cursor: pointer; transition: background 0.2s; }
+        .toggle:checked { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .toggle:before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; top: 3px; left: 3px; background: #fff; transition: left 0.2s, transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .toggle:checked:before { left: 23px; }
+        .btn-primary {
+            width: 100%; margin-top: 16px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #fff; border: none; padding: 14px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4); transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-primary svg { width: 20px; height: 20px; }
+        .metrics { display: flex; justify-content: space-between; margin-top: 8px; color: #64748b; font-size: 12px; }
+        .section { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .how-grid, .features-grid { display: grid; gap: 16px; }
+        .how-grid { grid-template-columns: repeat(3, 1fr); }
+        .features-grid { grid-template-columns: repeat(4, 1fr); }
+        .tool-btn {
+            display: inline-flex; align-items: center; border: 1px solid #e2e8f0; background: #fff;
+            color: #0f172a; border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+        }
+        .tool-btn:hover { background: #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .tool-btn:active { transform: translateY(1px); }
+        .tool-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        @media (max-width: 900px) { .how-grid { grid-template-columns: 1fr; } .features-grid { grid-template-columns: 1fr; } }
+        .how-card, .feat-card { 
+            background: #fff; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            padding: 24px; 
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .how-card:hover, .feat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        .icon-wrapper {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .how-card .icon-wrapper {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .how-card:nth-child(1) .icon-wrapper { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .how-card:nth-child(2) .icon-wrapper { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .how-card:nth-child(3) .icon-wrapper { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .feat-card:nth-child(1) .icon-wrapper { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .feat-card:nth-child(2) .icon-wrapper { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+        .feat-card:nth-child(3) .icon-wrapper { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .feat-card:nth-child(4) .icon-wrapper { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .icon-wrapper svg {
+            width: 32px;
+            height: 32px;
+            fill: #fff;
+        }
+        .how-card h3, .feat-card h3 {
+            color: #0f172a;
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .how-card p, .feat-card p {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .cta { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff; 
+            padding: 48px 28px; 
+            border-radius: 14px; 
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        }
+        .cta h3 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .cta p {
+            font-size: 16px;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+        .cta button { 
+            margin-top: 12px; 
+            background: #fff; 
+            color: #667eea; 
+            border: none; 
+            padding: 14px 28px; 
+            font-weight: 700; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cta button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,255,255,0.3);
+        }
+        .footer {
+            width: 100%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+            color: #e2e8f0; font-size: 12px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            margin-top: 40px;
+        }
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 18px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .footer a { color: #ffffff; text-decoration: underline; }
+        .alert { display: none; max-width: 1200px; margin: 10px auto; padding: 10px 14px; border-radius: 10px; }
+        .alert.success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        .alert.error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        .alert.show { display: block; }
+        /* Loader overlay */
+        .loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.35);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        /* Paste fallback modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.35);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+        .modal-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            width: min(90vw, 560px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+        }
+        .modal-title { font-weight: 700; color: #0f172a; }
+        .modal-close { background: transparent; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
+        #paste-fallback-area {
+            width: 100%; min-height: 140px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; resize: vertical; font-size: 14px;
+        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+        .btn {
+            border: 1px solid #e2e8f0; background: #fff; color: #0f172a; border-radius: 8px; padding: 8px 12px; cursor: pointer;
+        }
+        .btn-primary-solid { background: #0ea5e9; color: #fff; border: none; }
+        .loader-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 240px;
+            justify-content: center;
+        }
+        .loader-spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #0ea5e9;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <header class="nav">
+        <div class="nav-inner">
+            <div class="brand">
+                <span class="brand-logo" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#0ea5e9" d="M12 2l3.5 3.5L12 9 8.5 5.5 12 2z"/><path fill="#6366f1" d="M4 10l3.5-3.5L11 10 7.5 13.5 4 10z"/><path fill="#22c55e" d="M13 10l3.5-3.5L20 10l-3.5 3.5L13 10z"/><circle cx="12" cy="16" r="4" fill="#fff"/><circle cx="12" cy="16" r="2" fill="#0ea5e9"/>
+                    </svg>
+                </span>
+                <span>AI Text Humanizer</span>
+            </div>
+            <nav class="links">
+                <a href="/pricing">Pricing</a><a href="/features">Features</a><a href="/blog">Blog</a><a href="/about">About Us</a>
+            </nav>
+            <div class="actions">
+                <button class="btn-premium">Premium</button>
+                <span class="avatar" title="Profile"></span>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>The Ultimate AI Text Humanizer</h1>
+        <p>Paste your AI-generated text and watch it become more human-like in seconds. Refine, rewrite, and enhance with precision.</p>
+    </section>
+
+    <div class="alert" id="alert"></div>
+
+    <main class="workspace">
+        <div class="panes">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Original Text</h3>
+                    <div class="tools">
+                        <button id="paste-btn" class="tool-btn" title="Paste from clipboard" aria-label="Paste">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18" style="margin-right:6px;"><path fill="#0ea5e9" d="M19 2h-4.18C14.4.84 13.3 0 12 0s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16a2 2 0 0 0 2 2h9l7-7V4c0-1.1-.9-2-2-2zm-7 2c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm2 15H5V4h2v2h8V4h2v10h-4v5zm1-1.5V15.5l3.5 3.5H15z"/></svg>
+                            Paste
+                        </button>
+                        <button id="clear-btn" class="tool-btn" title="Clear input" aria-label="Clear">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18" style="margin-right:6px;"><path fill="#ef4444" d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1z"/></svg>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                <textarea id="input-text" placeholder="Paste your AI-generated text here..."></textarea>
+                <div class="metrics"><span id="input-count">0 / 10,000 Characters</span><span></span></div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Humanized Text</h3>
+                    <div class="tools">
+                        <button id="copy-btn" class="tool-btn" title="Copy result" aria-label="Copy">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18" style="margin-right:6px;"><path fill="#0ea5e9" d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                            Copy
+                        </button>
+                        <button id="download-btn" class="tool-btn" title="Download as .txt" aria-label="Download">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18" style="margin-right:6px;"><path fill="#22c55e" d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></svg>
+                            Download
+                        </button>
+                    </div>
+                </div>
+                <textarea id="output-text" placeholder="Ready to transform your text? Your human-like text will appear here." readonly></textarea>
+                <div class="metrics"><span>Readability: <span id="metric-readability">N/A</span></span><span>Humanization: <span id="metric-humanization">0%</span></span></div>
+            </div>
+        </div>
+
+        <div class="controller">
+            <div class="mode-tabs" id="mode-tabs">
+                <button class="mode-tab active" data-ui-mode="standard">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    Standard
+                </button>
+                <button class="mode-tab" data-ui-mode="creative">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    Creative
+                </button>
+                <button class="mode-tab" data-ui-mode="academic">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+                    </svg>
+                    Academic
+                </button>
+            </div>
+            <div class="range-row">
+                <div>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                    </svg>
+                    Intensity
+                </div>
+                <div>
+                    <input id="intensity-slider" type="range" min="0" max="100" value="70">
+                    <span id="intensity-value">70%</span>
+                </div>
+            </div>
+            <div class="toggle-row">
+                <span>
+                    <svg viewBox="0 0 24 24" fill="#22c55e">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    Improve Readability
+                </span>
+                <input id="toggle-readability" type="checkbox" class="toggle" checked>
+            </div>
+            <div class="toggle-row">
+                <span>
+                    <svg viewBox="0 0 24 24" fill="#f59e0b">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    Expand Vocabulary
+                </span>
+                <input id="toggle-vocab" type="checkbox" class="toggle">
+            </div>
+            <button id="humanize-btn" class="btn-primary">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 11.24V7.5a2.5 2.5 0 0 1 5 0v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z"/>
+                </svg>
+                Humanize Text
+            </button>
+        </div>
+    </main>
+
+    <section class="section">
+        <h2 style="text-align:center;margin-bottom:8px;font-size:32px;color:#0f172a;font-weight:700;">How It Works in 3 Simple Steps</h2>
+        <p style="text-align:center;color:#64748b;margin-bottom:32px;font-size:16px;">Achieve perfectly humanized content effortlessly.</p>
+        <div class="how-grid">
+            <div class="how-card">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H5V4h14v16zm-5.04-6.71l-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-3.71z"/>
+                    </svg>
+                </div>
+                <h3>1. Paste Your AI Text</h3>
+                <p>Simply input the content generated by any AI tool into the editor.</p>
+            </div>
+            <div class="how-card">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <h3>2. Click 'Humanize'</h3>
+                <p>Our advanced engine refines the text to sound completely natural.</p>
+            </div>
+            <div class="how-card">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                </div>
+                <h3>3. Copy Your Content</h3>
+                <p>Your humanized, plagiarism-free text is ready to be used anywhere.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 style="text-align:center;margin-bottom:32px;font-size:32px;color:#0f172a;font-weight:700;">Go Beyond Simple Paraphrasing</h2>
+        <div class="features-grid">
+            <div class="feat-card">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                    </svg>
+                </div>
+                <h3>Bypass AI Detection</h3>
+                <p>Carefully tuned patterns help reduce AI detector flags.</p>
+            </div>
+            <div class="feat-card">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                </div>
+                <h3>Advanced Paraphrasing</h3>
+                <p>Improve clarity, tone, and style for a truly human touch.</p>
+            </div>
+            <div class="feat-card">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/>
+                    </svg>
+                </div>
+                <h3>Maintain Original Meaning</h3>
+                <p>Preserve the core message and context of your original text.</p>
+            </div>
+            <div class="feat-card">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                    </svg>
+                </div>
+                <h3>Plagiarism-Free Guarantee</h3>
+                <p>Generate unique content that is free from plagiarism concerns.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="cta">
+            <h3>Ready to Create Undetectable AI Content?</h3>
+            <p>Join thousands of writers who trust our AI humanizer. Start for free and experience the difference.</p>
+            <button onclick="document.getElementById('input-text').focus()">Start for Free Now</button>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span class="brand-logo" aria-hidden="true" style="background:#ffffff;">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#0ea5e9" d="M12 2l3.5 3.5L12 9 8.5 5.5 12 2z"/><path fill="#6366f1" d="M4 10l3.5-3.5L11 10 7.5 13.5 4 10z"/><path fill="#22c55e" d="M13 10l3.5-3.5L20 10l-3.5 3.5L13 10z"/>
+                    </svg>
+                </span>
+                <span>© 2024 AI Text Humanizer. All rights reserved.</span>
+            </div>
+            <div> <a>Privacy Policy</a> • <a>Terms of Service</a> • <a>Contact</a> </div>
+        </div>
+    </footer>
+
+    <!-- Loader Overlay -->
+    <div id="loader-overlay" class="loader-overlay">
+        <div class="loader-card">
+            <div class="loader-spinner"></div>
+            <div style="font-weight:600;color:#0f172a;">Humanizing your text...</div>
+        </div>
+    </div>
+    <!-- Paste Fallback Modal -->
+    <div id="paste-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="paste-modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div id="paste-modal-title" class="modal-title">Paste from Clipboard</div>
+                <button id="paste-modal-close" class="modal-close" aria-label="Close">✕</button>
+            </div>
+            <p style="color:#64748b;margin-bottom:8px;">Your browser has limited clipboard access. Press Ctrl/Cmd + V here, then click Insert.</p>
+            <textarea id="paste-fallback-area" placeholder="Press Ctrl/Cmd + V to paste your text here..."></textarea>
+            <div class="modal-actions">
+                <button id="paste-modal-cancel" class="btn">Cancel</button>
+                <button id="paste-modal-insert" class="btn btn-primary-solid">Insert</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API base
+        const API_URL = window.location.origin + '/api/v1';
+
+        // Elements
+        const inputText = document.getElementById('input-text');
+        const outputText = document.getElementById('output-text');
+        const inputCount = document.getElementById('input-count');
+        const copyBtn = document.getElementById('copy-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const pasteBtn = document.getElementById('paste-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        // Paste modal elements
+        const pasteModal = document.getElementById('paste-modal');
+        const pasteArea = document.getElementById('paste-fallback-area');
+        const pasteClose = document.getElementById('paste-modal-close');
+        const pasteCancel = document.getElementById('paste-modal-cancel');
+        const pasteInsert = document.getElementById('paste-modal-insert');
+        const humanizeBtn = document.getElementById('humanize-btn');
+        const intensitySlider = document.getElementById('intensity-slider');
+        const intensityValue = document.getElementById('intensity-value');
+        const alertBox = document.getElementById('alert');
+        const metricReadability = document.getElementById('metric-readability');
+        const metricHumanization = document.getElementById('metric-humanization');
+        const loaderOverlay = document.getElementById('loader-overlay');
+
+        // Mode mapping (UI -> API)
+        let currentMode = 'balanced'; // default Standard
+        const uiModeToApi = {
+            standard: 'balanced',
+            creative: 'fast',
+            academic: 'quality'
+        };
+
+        // Mode tabs
+        document.querySelectorAll('.mode-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const uiMode = btn.getAttribute('data-ui-mode');
+                currentMode = uiModeToApi[uiMode] || 'balanced';
+                handleWebSocket();
+            });
+        });
+
+        // Character count
+        inputText.addEventListener('input', () => {
+            inputCount.textContent = `${inputText.value.length} / 10,000 Characters`;
+            if (ws && ws.readyState === WebSocket.OPEN && currentMode === 'fast') {
+                scheduleWsSend();
+            }
+        });
+
+        // Intensity
+        intensitySlider.addEventListener('input', () => {
+            intensityValue.textContent = `${intensitySlider.value}%`;
+            if (ws && ws.readyState === WebSocket.OPEN && currentMode === 'fast') {
+                scheduleWsSend();
+            }
+        });
+
+        // Toggles (technique hints)
+        const toggleRead = document.getElementById('toggle-readability');
+        const toggleVocab = document.getElementById('toggle-vocab');
+
+        function techniquesFromToggles() {
+            const t = ['sentence_variation','human_patterns'];
+            if (toggleVocab.checked) t.push('semantic_paraphrasing');
+            // readability toggle can map to stylistic injection lightly
+            if (toggleRead.checked) t.push('stylistic_injection');
+            return t;
+        }
+
+        // Copy/Download
+        copyBtn.addEventListener('click', () => {
+            if (!outputText.value) return notify('No text to copy', 'error');
+            outputText.select(); document.execCommand('copy');
+            notify('Copied to clipboard', 'success');
+        });
+        downloadBtn.addEventListener('click', () => {
+            if (!outputText.value) return notify('No text to download', 'error');
+            const blob = new Blob([outputText.value], {type:'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'humanized.txt';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+
+        // Paste/Clear functionality
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text) {
+                        inputText.value = text;
+                        inputCount.textContent = `${text.length} / 10,000 Characters`;
+                        notify('Pasted from clipboard', 'success');
+                        if (ws && ws.readyState === WebSocket.OPEN && currentMode === 'fast') {
+                            scheduleWsSend();
+                        }
+                    } else {
+                        notify('Clipboard is empty', 'error');
+                    }
+                } else {
+                    // Fallback to modal
+                    openPasteModal();
+                }
+            } catch (e) {
+                console.error(e);
+                // Use fallback modal on error (permissions, insecure context, etc.)
+                openPasteModal();
+            }
+        });
+        clearBtn.addEventListener('click', () => {
+            inputText.value = '';
+            inputCount.textContent = '0 / 10,000 Characters';
+            notify('Cleared input', 'success');
+        });
+        function openPasteModal() {
+            pasteArea.value = '';
+            pasteModal.style.display = 'flex';
+            setTimeout(() => pasteArea.focus(), 0);
+        }
+        function closePasteModal() {
+            pasteModal.style.display = 'none';
+        }
+        pasteClose.addEventListener('click', closePasteModal);
+        pasteCancel.addEventListener('click', closePasteModal);
+        pasteInsert.addEventListener('click', () => {
+            const text = pasteArea.value;
+            if (!text) { notify('Nothing to insert', 'error'); return; }
+            inputText.value = text;
+            inputCount.textContent = `${text.length} / 10,000 Characters`;
+            notify('Inserted pasted text', 'success');
+            closePasteModal();
+            if (ws && ws.readyState === WebSocket.OPEN && currentMode === 'fast') {
+                scheduleWsSend();
+            }
+        });
+        // Close modal when clicking outside card
+        pasteModal.addEventListener('click', (e) => {
+            if (e.target === pasteModal) closePasteModal();
+        });
+        // Close modal on Escape
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && pasteModal.style.display === 'flex') closePasteModal();
+        });
+
+        // Humanize click
+        humanizeBtn.addEventListener('click', humanize);
+
+        async function humanize() {
+            const text = inputText.value.trim();
+            if (!text) return notify('Please enter some text', 'error');
+            setLoading(true);
+            try {
+                const res = await fetch(`${API_URL}/humanize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text,
+                        mode: currentMode,
+                        intensity: Number(intensitySlider.value) / 100,
+                        preserve_meaning: true,
+                        techniques: techniquesFromToggles()
+                    })
+                });
+                if (!res.ok) throw new Error('Request failed');
+                const data = await res.json();
+                outputText.value = data.humanized_text || '';
+                // simple derived metrics
+                metricHumanization.textContent = text.length ? `${Math.min(100, Math.abs(text.length - outputText.value.length)/Math.max(1,text.length)*100|0)}%` : '0%';
+                metricReadability.textContent = 'N/A';
+                notify('Text humanized successfully!', 'success');
+            } catch (e) {
+                console.error(e);
+                notify('Failed to humanize text. Please try again.', 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Notifications
+        function notify(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type} show`;
+            setTimeout(() => alertBox.classList.remove('show'), 2500);
+        }
+        function setLoading(isLoading) {
+            // Toggle overlay
+            loaderOverlay.style.display = isLoading ? 'flex' : 'none';
+            // Disable primary controls while processing
+            humanizeBtn.disabled = isLoading;
+            inputText.disabled = isLoading;
+            intensitySlider.disabled = isLoading;
+            toggleRead.disabled = isLoading;
+            toggleVocab.disabled = isLoading;
+            pasteBtn.disabled = isLoading;
+            clearBtn.disabled = isLoading;
+        }
+
+        // WebSocket (fast/creative)
+        let ws = null;
+        let wsTimer = null;
+        function handleWebSocket() {
+            if (currentMode === 'fast') {
+                const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+                if (ws) { try { ws.close(); } catch(e){} }
+                ws = new WebSocket(`${protocol}://${location.host}/api/v1/humanize/ws`);
+                ws.onopen = () => console.log('WS connected');
+                ws.onmessage = (evt) => {
+                    const data = JSON.parse(evt.data);
+                    outputText.value = data.humanized || '';
+                };
+                ws.onerror = () => console.warn('WS error');
+            } else if (ws) {
+                try { ws.close(); } catch(e){} ws = null;
+            }
+        }
+        function scheduleWsSend() {
+            clearTimeout(wsTimer);
+            wsTimer = setTimeout(() => {
+                try {
+                    ws.send(JSON.stringify({
+                        text: inputText.value,
+                        intensity: Number(intensitySlider.value) / 100
+                    }));
+                } catch(e) {}
+            }, 450);
+        }
+        // Initialize
+        handleWebSocket();
+    </script>
+</body>
+</html>
